@@ -58,6 +58,12 @@ public class VentaService {
         ventaDto.setId(lastId);
         ventaDto.setFechaVenta(LocalDateTime.now());
         
+        // Asignar IDs a los detalles
+        Long detalleId = 1L;
+        for (DetalleVentaDto detalle : ventaDto.getDetalles()) {
+            detalle.setId(detalleId++);
+        }
+        
         // Actualizar stock de productos
         for (DetalleVentaDto detalle : ventaDto.getDetalles()) {
             boolean stockActualizado = productoService.actualizarStock(

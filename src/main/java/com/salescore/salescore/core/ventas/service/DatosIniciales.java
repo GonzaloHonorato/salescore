@@ -39,11 +39,13 @@ public class DatosIniciales {
         venta1.setFechaVenta(LocalDateTime.now().minusDays(2));
         
         DetalleVentaDto detalle1 = new DetalleVentaDto();
+        detalle1.setId(1L);
         detalle1.setProducto(productos.get(0));  // Alimento para perros
         detalle1.setCantidad(2);
         detalle1.setPrecioUnitario(productos.get(0).getPrecio());
         
         DetalleVentaDto detalle2 = new DetalleVentaDto();
+        detalle2.setId(2L);
         detalle2.setProducto(productos.get(2));  // Correa para paseo
         detalle2.setCantidad(1);
         detalle2.setPrecioUnitario(productos.get(2).getPrecio());
@@ -64,11 +66,13 @@ public class DatosIniciales {
         venta2.setFechaVenta(LocalDateTime.now().minusDays(1));
         
         DetalleVentaDto detalle3 = new DetalleVentaDto();
+        detalle3.setId(1L);
         detalle3.setProducto(productos.get(3));  // Cama para gatos
         detalle3.setCantidad(1);
         detalle3.setPrecioUnitario(productos.get(3).getPrecio());
         
         DetalleVentaDto detalle4 = new DetalleVentaDto();
+        detalle4.setId(2L);
         detalle4.setProducto(productos.get(4));  // Shampoo para mascotas
         detalle4.setCantidad(2);
         detalle4.setPrecioUnitario(productos.get(4).getPrecio());
@@ -89,11 +93,13 @@ public class DatosIniciales {
         venta3.setFechaVenta(LocalDateTime.now());
         
         DetalleVentaDto detalle5 = new DetalleVentaDto();
+        detalle5.setId(1L);
         detalle5.setProducto(productos.get(1));  // Pelota para perros
         detalle5.setCantidad(3);
         detalle5.setPrecioUnitario(productos.get(1).getPrecio());
         
         DetalleVentaDto detalle6 = new DetalleVentaDto();
+        detalle6.setId(2L);
         detalle6.setProducto(productos.get(0));  // Alimento para perros
         detalle6.setCantidad(1);
         detalle6.setPrecioUnitario(productos.get(0).getPrecio());
