@@ -1,5 +1,7 @@
 package com.salescore.salescore.core.ventas.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -28,6 +30,7 @@ public class DetalleVenta {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "VENTA_ID", nullable = false)
+    @JsonBackReference
     private Venta venta;
     
     @ManyToOne(fetch = FetchType.LAZY)

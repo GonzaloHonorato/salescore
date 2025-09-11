@@ -34,13 +34,13 @@ public class VentaService {
     private DetalleVentaRepository detalleVentaRepository;
     
     public List<VentaDto> listarTodas() {
-        return ventaRepository.findAll().stream()
+        return ventaRepository.findAllWithDetalles().stream()
                 .map(ventaMapper::toDto)
                 .collect(Collectors.toList());
     }
     
     public Optional<VentaDto> buscarPorId(Integer id) {
-        return ventaRepository.findById(id)
+        return ventaRepository.findByIdWithDetalles(id)
                 .map(ventaMapper::toDto);
     }
     
@@ -103,5 +103,14 @@ public class VentaService {
         return ventasPeriodo.stream()
                 .mapToDouble(Venta::getTotal)
                 .sum();
+    }
+    
+    // Métodos de debug
+    public Long contarVentasNativo() {
+        return ventaRepository.countVentasNative();
+    }
+    
+    public List<Object[]> obtenerVentasNativo() {
+        return ventaRepository.findAllNative();
     }
 }

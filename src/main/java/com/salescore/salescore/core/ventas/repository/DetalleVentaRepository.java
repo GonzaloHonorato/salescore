@@ -12,6 +12,9 @@ import com.salescore.salescore.core.ventas.model.DetalleVenta;
 @Repository
 public interface DetalleVentaRepository extends JpaRepository<DetalleVenta, Integer> {
     
+    @Query("SELECT d FROM DetalleVenta d LEFT JOIN FETCH d.producto LEFT JOIN FETCH d.venta")
+    List<DetalleVenta> findAllWithRelations();
+    
     List<DetalleVenta> findByVentaId(Integer ventaId);
     
     List<DetalleVenta> findByProductoId(Integer productoId);

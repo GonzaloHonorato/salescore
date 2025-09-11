@@ -24,7 +24,7 @@ public class DetalleVentaService {
     private DetalleVentaMapper detalleVentaMapper;
     
     public List<DetalleVentaDto> listarTodos() {
-        return detalleVentaRepository.findAll().stream()
+        return detalleVentaRepository.findAllWithRelations().stream()
                 .map(detalleVentaMapper::toDto)
                 .collect(Collectors.toList());
     }

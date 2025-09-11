@@ -128,4 +128,17 @@ public class VentaController {
             return ResponseEntity.notFound().build();
         }
     }
+    
+    // Endpoints de debug
+    @GetMapping("/debug/count")
+    public ResponseEntity<Long> contarVentasNativo() {
+        Long count = ventaService.contarVentasNativo();
+        return ResponseEntity.ok(count);
+    }
+    
+    @GetMapping("/debug/raw")
+    public ResponseEntity<List<Object[]>> obtenerVentasNativo() {
+        List<Object[]> ventas = ventaService.obtenerVentasNativo();
+        return ResponseEntity.ok(ventas);
+    }
 }
