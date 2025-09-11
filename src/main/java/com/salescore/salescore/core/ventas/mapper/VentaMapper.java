@@ -1,19 +1,28 @@
 package com.salescore.salescore.core.ventas.mapper;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.salescore.salescore.core.ventas.dto.VentaDto;
 import com.salescore.salescore.core.ventas.model.Venta;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Component
 public class VentaMapper {
     
     @Autowired
     private DetalleVentaMapper detalleVentaMapper;
+    
+    // Métodos para compatibilidad con JPA
+    public VentaDto toDto(Venta venta) {
+        return modelToDto(venta);
+    }
+    
+    public Venta toEntity(VentaDto ventaDto) {
+        return dtoToModel(ventaDto);
+    }
     
     public VentaDto modelToDto(Venta venta) {
         if (venta == null) {
@@ -22,12 +31,16 @@ public class VentaMapper {
         
         VentaDto ventaDto = new VentaDto(
                 venta.getId(),
-                venta.getFechaVenta(),
+                venta.getFecha(),
                 venta.getTotal(),
-                venta.getCliente()
+                venta.getClienteNombre(),
+                venta.getClienteRut(),
+                venta.getVendedor()
         );
         
-        ventaDto.setDetalles(detalleVentaMapper.modelsToDtos(venta.getDetalles()));
+        if (venta.getDetalles() != null) {
+            ventaDto.setDetalles(detalleVentaMapper.modelsToDtos(venta.getDetalles()));
+        }
         
         return ventaDto;
     }
@@ -39,12 +52,17 @@ public class VentaMapper {
         
         Venta venta = new Venta(
                 ventaDto.getId(),
-                ventaDto.getFechaVenta(),
+                ventaDto.getFecha(),
                 ventaDto.getTotal(),
-                ventaDto.getCliente()
+                ventaDto.getClienteNombre(),
+                ventaDto.getClienteRut(),
+                ventaDto.getVendedor(),
+                new ArrayList<>()
         );
         
-        venta.setDetalles(detalleVentaMapper.dtosToModels(ventaDto.getDetalles()));
+        if (ventaDto.getDetalles() != null) {
+            venta.setDetalles(detalleVentaMapper.dtosToModels(ventaDto.getDetalles()));
+        }
         
         return venta;
     }

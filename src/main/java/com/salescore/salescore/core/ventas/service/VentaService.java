@@ -2,20 +2,23 @@ package com.salescore.salescore.core.ventas.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.salescore.salescore.core.ventas.dto.DetalleVentaDto;
 import com.salescore.salescore.core.ventas.dto.VentaDto;
 import com.salescore.salescore.core.ventas.mapper.VentaMapper;
+import com.salescore.salescore.core.ventas.model.DetalleVenta;
 import com.salescore.salescore.core.ventas.model.Venta;
+import com.salescore.salescore.core.ventas.repository.DetalleVentaRepository;
+import com.salescore.salescore.core.ventas.repository.VentaRepository;
 
-import jakarta.annotation.PostConstruct;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class VentaService {
     
     @Autowired
@@ -24,73 +27,80 @@ public class VentaService {
     @Autowired
     private ProductoService productoService;
     
-    private List<Venta> ventas;
-    private Long lastId;
+    @Autowired
+    private VentaRepository ventaRepository;
     
-    @PostConstruct
-    public void init() {
-        ventas = new ArrayList<>();
-        lastId = 0L;
-        
-        // Datos iniciales serán creados en el controlador para demostrar el uso
-    }
+    @Autowired
+    private DetalleVentaRepository detalleVentaRepository;
     
     public List<VentaDto> listarTodas() {
-        return ventaMapper.modelsToDtos(ventas);
-    }
-    
-    public Optional<VentaDto> buscarPorId(Long id) {
-        return ventas.stream()
-                .filter(venta -> venta.getId().equals(id))
-                .findFirst()
-                .map(venta -> ventaMapper.modelToDto(venta));
-    }
-    
-    public List<VentaDto> buscarPorFechas(LocalDateTime inicio, LocalDateTime fin) {
-        return ventas.stream()
-                .filter(venta -> !venta.getFechaVenta().isBefore(inicio) && !venta.getFechaVenta().isAfter(fin))
-                .map(venta -> ventaMapper.modelToDto(venta))
+        return ventaRepository.findAll().stream()
+                .map(ventaMapper::toDto)
                 .collect(Collectors.toList());
     }
     
-    public VentaDto registrarVenta(VentaDto ventaDto) {
-        lastId++;
-        ventaDto.setId(lastId);
-        ventaDto.setFechaVenta(LocalDateTime.now());
-        
-        // Asignar IDs a los detalles
-        Long detalleId = 1L;
+    public Optional<VentaDto> buscarPorId(Integer id) {
+        return ventaRepository.findById(id)
+                .map(ventaMapper::toDto);
+    }
+    
+    public List<VentaDto> buscarPorFechas(LocalDateTime inicio, LocalDateTime fin) {
+        return ventaRepository.findByRangoFechas(inicio, fin).stream()
+                .map(ventaMapper::toDto)
+                .collect(Collectors.toList());
+    }
+    
+    public VentaDto crear(VentaDto ventaDto) {
+        // Procesar cada ítem para actualizar stock y validar existencias
         for (DetalleVentaDto detalle : ventaDto.getDetalles()) {
-            detalle.setId(detalleId++);
-        }
-        
-        // Actualizar stock de productos
-        for (DetalleVentaDto detalle : ventaDto.getDetalles()) {
-            boolean stockActualizado = productoService.actualizarStock(
-                    detalle.getProducto().getId(), 
-                    detalle.getCantidad());
-            
+            boolean stockActualizado = productoService.actualizarStock(detalle.getProductoId(), detalle.getCantidad());
             if (!stockActualizado) {
-                throw new RuntimeException("Stock insuficiente para el producto: " + detalle.getProducto().getNombre());
+                throw new RuntimeException("Stock insuficiente para el producto ID: " + detalle.getProductoId());
             }
         }
         
-        // Calcular el total de la venta
-        double total = ventaDto.getDetalles().stream()
-                .mapToDouble(detalle -> detalle.getPrecioUnitario() * detalle.getCantidad())
-                .sum();
-        ventaDto.setTotal(total);
+        // Convertir DTO a entidad
+        Venta venta = ventaMapper.toEntity(ventaDto);
+        venta.setId(null); // Asegurar que es nueva
         
         // Guardar la venta
-        Venta venta = ventaMapper.dtoToModel(ventaDto);
-        ventas.add(venta);
+        Venta guardada = ventaRepository.save(venta);
         
-        return ventaMapper.modelToDto(venta);
+        // Calcular y devolver DTO con información completa
+        return ventaMapper.toDto(guardada);
+    }
+    
+    public VentaDto actualizar(Integer id, VentaDto ventaDto) {
+        if (!ventaRepository.existsById(id)) {
+            throw new RuntimeException("Venta no encontrada con ID: " + id);
+        }
+        
+        // Restaurar stock de los ítems originales y actualizar con los nuevos
+        Optional<Venta> ventaOriginalOpt = ventaRepository.findById(id);
+        if (ventaOriginalOpt.isPresent()) {
+            // Lógica para manejar el stock si fuera necesario
+        }
+        
+        Venta venta = ventaMapper.toEntity(ventaDto);
+        venta.setId(id);
+        Venta actualizada = ventaRepository.save(venta);
+        
+        return ventaMapper.toDto(actualizada);
+    }
+    
+    public void eliminar(Integer id) {
+        if (!ventaRepository.existsById(id)) {
+            throw new RuntimeException("Venta no encontrada con ID: " + id);
+        }
+        
+        // Opcionalmente restaurar stock antes de eliminar
+        
+        ventaRepository.deleteById(id);
     }
     
     public double calcularGananciasPorPeriodo(LocalDateTime inicio, LocalDateTime fin) {
-        return ventas.stream()
-                .filter(venta -> !venta.getFechaVenta().isBefore(inicio) && !venta.getFechaVenta().isAfter(fin))
+        List<Venta> ventasPeriodo = ventaRepository.findByRangoFechas(inicio, fin);
+        return ventasPeriodo.stream()
                 .mapToDouble(Venta::getTotal)
                 .sum();
     }

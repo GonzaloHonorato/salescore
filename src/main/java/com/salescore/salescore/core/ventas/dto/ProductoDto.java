@@ -1,7 +1,7 @@
 package com.salescore.salescore.core.ventas.dto;
 
 public class ProductoDto {
-    private Long id;
+    private Integer id;
     private String nombre;
     private String categoria;
     private Double precio;
@@ -11,7 +11,7 @@ public class ProductoDto {
     public ProductoDto() {
     }
     
-    public ProductoDto(Long id, String nombre, String categoria, Double precio, Integer stock, String descripcion) {
+    public ProductoDto(Integer id, String nombre, String categoria, Double precio, Integer stock, String descripcion) {
         this.id = id;
         this.nombre = nombre;
         this.categoria = categoria;
@@ -20,11 +20,11 @@ public class ProductoDto {
         this.descripcion = descripcion;
     }
     
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
     
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
     }
     

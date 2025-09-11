@@ -1,7 +1,8 @@
 package com.salescore.salescore.core.ventas.dto;
 
 public class DetalleVentaDto {
-    private Long id;
+    private Integer id;
+    private Integer productoId;
     private ProductoDto producto;
     private Integer cantidad;
     private Double precioUnitario;
@@ -10,20 +11,29 @@ public class DetalleVentaDto {
     public DetalleVentaDto() {
     }
     
-    public DetalleVentaDto(Long id, ProductoDto producto, Integer cantidad, Double precioUnitario) {
+    public DetalleVentaDto(Integer id, ProductoDto producto, Integer cantidad, Double precioUnitario) {
         this.id = id;
         this.producto = producto;
+        this.productoId = producto != null ? producto.getId() : null;
         this.cantidad = cantidad;
         this.precioUnitario = precioUnitario;
         this.subtotal = cantidad * precioUnitario;
     }
     
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
     
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
+    }
+    
+    public Integer getProductoId() {
+        return productoId;
+    }
+    
+    public void setProductoId(Integer productoId) {
+        this.productoId = productoId;
     }
     
     public ProductoDto getProducto() {
@@ -32,6 +42,7 @@ public class DetalleVentaDto {
     
     public void setProducto(ProductoDto producto) {
         this.producto = producto;
+        this.productoId = producto != null ? producto.getId() : null;
     }
     
     public Integer getCantidad() {

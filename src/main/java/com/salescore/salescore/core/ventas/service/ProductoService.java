@@ -2,71 +2,77 @@ package com.salescore.salescore.core.ventas.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.salescore.salescore.core.ventas.dto.ProductoDto;
 import com.salescore.salescore.core.ventas.mapper.ProductoMapper;
 import com.salescore.salescore.core.ventas.model.Producto;
+import com.salescore.salescore.core.ventas.repository.ProductoRepository;
 
-import jakarta.annotation.PostConstruct;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class ProductoService {
     
     @Autowired
     private ProductoMapper productoMapper;
     
-    private List<Producto> productos;
-    private Long lastId;
-    
-    @PostConstruct
-    public void init() {
-        productos = new ArrayList<>();
-        lastId = 0L;
-        
-        // Carga de datos iniciales
-        crearProducto(new ProductoDto(null, "Alimento para perros premium", "Alimentos", 25000.0, 50, "Alimento premium para perros adultos - 15kg"));
-        crearProducto(new ProductoDto(null, "Pelota para perros", "Juguetes", 5000.0, 30, "Pelota de goma resistente para perros"));
-        crearProducto(new ProductoDto(null, "Correa para paseo", "Accesorios", 12000.0, 25, "Correa retráctil para paseos de hasta 5 metros"));
-        crearProducto(new ProductoDto(null, "Cama para gatos", "Accesorios", 18000.0, 15, "Cama acolchada para gatos de tamaño mediano"));
-        crearProducto(new ProductoDto(null, "Shampoo para mascotas", "Higiene", 8000.0, 40, "Shampoo hipoalergénico para perros y gatos"));
-    }
+    @Autowired
+    private ProductoRepository productoRepository;
     
     public List<ProductoDto> listarTodos() {
-        return productoMapper.modelsToDtos(productos);
-    }
-    
-    public Optional<ProductoDto> buscarPorId(Long id) {
-        return productos.stream()
-                .filter(producto -> producto.getId().equals(id))
-                .findFirst()
-                .map(producto -> productoMapper.modelToDto(producto));
-    }
-    
-    public List<ProductoDto> buscarPorCategoria(String categoria) {
-        return productos.stream()
-                .filter(producto -> producto.getCategoria().equalsIgnoreCase(categoria))
-                .map(producto -> productoMapper.modelToDto(producto))
+        return productoRepository.findAll().stream()
+                .map(productoMapper::toDto)
                 .collect(Collectors.toList());
     }
     
-    public ProductoDto crearProducto(ProductoDto productoDto) {
-        lastId++;
-        productoDto.setId(lastId);
-        
-        Producto producto = productoMapper.dtoToModel(productoDto);
-        productos.add(producto);
-        
-        return productoMapper.modelToDto(producto);
+    public Optional<ProductoDto> buscarPorId(Integer id) {
+        return productoRepository.findById(id)
+                .map(productoMapper::toDto);
     }
     
-    public boolean actualizarStock(Long id, int cantidad) {
-        Optional<Producto> productoOpt = productos.stream()
-                .filter(p -> p.getId().equals(id))
-                .findFirst();
+    public List<ProductoDto> buscarPorCategoria(String categoria) {
+        return productoRepository.findByCategoria(categoria).stream()
+                .map(productoMapper::toDto)
+                .collect(Collectors.toList());
+    }
+    
+    public List<ProductoDto> buscarPorNombre(String nombre) {
+        return productoRepository.findByNombreContainingIgnoreCase(nombre).stream()
+                .map(productoMapper::toDto)
+                .collect(Collectors.toList());
+    }
+    
+    public ProductoDto crear(ProductoDto productoDto) {
+        Producto producto = productoMapper.toEntity(productoDto);
+        producto.setId(null); // Asegurar que es una nueva entidad
+        Producto guardado = productoRepository.save(producto);
+        return productoMapper.toDto(guardado);
+    }
+    
+    public ProductoDto actualizar(Integer id, ProductoDto productoDto) {
+        if (!productoRepository.existsById(id)) {
+            throw new RuntimeException("Producto no encontrado con ID: " + id);
+        }
+        
+        Producto producto = productoMapper.toEntity(productoDto);
+        producto.setId(id);
+        Producto actualizado = productoRepository.save(producto);
+        return productoMapper.toDto(actualizado);
+    }
+    
+    public void eliminar(Integer id) {
+        if (!productoRepository.existsById(id)) {
+            throw new RuntimeException("Producto no encontrado con ID: " + id);
+        }
+        productoRepository.deleteById(id);
+    }
+    
+    public boolean actualizarStock(Integer id, int cantidad) {
+        Optional<Producto> productoOpt = productoRepository.findById(id);
                 
         if (productoOpt.isPresent()) {
             Producto producto = productoOpt.get();
@@ -74,6 +80,7 @@ public class ProductoService {
             
             if (nuevoStock >= 0) {
                 producto.setStock(nuevoStock);
+                productoRepository.save(producto);
                 return true;
             }
         }

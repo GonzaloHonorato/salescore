@@ -1,15 +1,24 @@
 package com.salescore.salescore.core.ventas.mapper;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.stereotype.Component;
 
 import com.salescore.salescore.core.ventas.dto.ProductoDto;
 import com.salescore.salescore.core.ventas.model.Producto;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Component
 public class ProductoMapper {
+    
+    // Nuevos métodos para compatibilidad con JPA
+    public ProductoDto toDto(Producto producto) {
+        return modelToDto(producto);
+    }
+    
+    public Producto toEntity(ProductoDto productoDto) {
+        return dtoToModel(productoDto);
+    }
     
     public ProductoDto modelToDto(Producto producto) {
         if (producto == null) {

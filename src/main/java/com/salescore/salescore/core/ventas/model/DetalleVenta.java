@@ -1,79 +1,45 @@
 package com.salescore.salescore.core.ventas.model;
 
-import java.util.Objects;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "DETALLE_VENTAS")
 public class DetalleVenta {
-    private Long id;
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "detalle_venta_seq")
+    @SequenceGenerator(name = "detalle_venta_seq", sequenceName = "DETALLE_VENTA_SEQ", allocationSize = 1)
+    private Integer id;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "VENTA_ID", nullable = false)
+    private Venta venta;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "PRODUCTO_ID", nullable = false)
     private Producto producto;
+    
+    @Column(nullable = false)
     private Integer cantidad;
+    
+    @Column(name = "PRECIO_UNITARIO", nullable = false)
     private Double precioUnitario;
     
-    public DetalleVenta() {
-    }
-    
-    public DetalleVenta(Long id, Producto producto, Integer cantidad, Double precioUnitario) {
-        this.id = id;
-        this.producto = producto;
-        this.cantidad = cantidad;
-        this.precioUnitario = precioUnitario;
-    }
-    
-    public Long getId() {
-        return id;
-    }
-    
-    public void setId(Long id) {
-        this.id = id;
-    }
-    
-    public Producto getProducto() {
-        return producto;
-    }
-    
-    public void setProducto(Producto producto) {
-        this.producto = producto;
-    }
-    
-    public Integer getCantidad() {
-        return cantidad;
-    }
-    
-    public void setCantidad(Integer cantidad) {
-        this.cantidad = cantidad;
-    }
-    
-    public Double getPrecioUnitario() {
-        return precioUnitario;
-    }
-    
-    public void setPrecioUnitario(Double precioUnitario) {
-        this.precioUnitario = precioUnitario;
-    }
-    
-    public Double getSubtotal() {
-        return cantidad * precioUnitario;
-    }
-    
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        DetalleVenta that = (DetalleVenta) o;
-        return Objects.equals(id, that.id);
-    }
-    
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-    
-    @Override
-    public String toString() {
-        return "DetalleVenta{" +
-                "id=" + id +
-                ", producto=" + producto +
-                ", cantidad=" + cantidad +
-                ", precioUnitario=" + precioUnitario +
-                '}';
-    }
+    @Column(nullable = false)
+    private Double subtotal;
 }

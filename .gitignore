@@ -31,3 +31,10 @@ build/
 
 ### VS Code ###
 .vscode/
+
+src/main/resources/wallet/
+*.jks
+*.p12
+*.pem
+*.sso
+application-local.properties

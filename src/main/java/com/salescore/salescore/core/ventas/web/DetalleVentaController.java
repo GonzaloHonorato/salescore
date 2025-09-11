@@ -12,45 +12,44 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.salescore.salescore.core.ventas.dto.ProductoDto;
-import com.salescore.salescore.core.ventas.service.ProductoService;
+import com.salescore.salescore.core.ventas.dto.DetalleVentaDto;
+import com.salescore.salescore.core.ventas.service.DetalleVentaService;
 
 @RestController
-@RequestMapping("/api/productos")
-public class ProductoController {
+@RequestMapping("/api/detalles-venta")
+public class DetalleVentaController {
     
     @Autowired
-    private ProductoService productoService;
+    private DetalleVentaService detalleVentaService;
     
     @GetMapping
-    public ResponseEntity<List<ProductoDto>> listarTodos() {
-        return ResponseEntity.ok(productoService.listarTodos());
+    public ResponseEntity<List<DetalleVentaDto>> listarTodos() {
+        return ResponseEntity.ok(detalleVentaService.listarTodos());
     }
     
     @GetMapping("/{id}")
-    public ResponseEntity<ProductoDto> buscarPorId(@PathVariable Integer id) {
-        return productoService.buscarPorId(id)
+    public ResponseEntity<DetalleVentaDto> buscarPorId(@PathVariable Integer id) {
+        return detalleVentaService.buscarPorId(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
     
-    @GetMapping("/categoria/{categoria}")
-    public ResponseEntity<List<ProductoDto>> buscarPorCategoria(@PathVariable String categoria) {
-        return ResponseEntity.ok(productoService.buscarPorCategoria(categoria));
+    @GetMapping("/venta/{ventaId}")
+    public ResponseEntity<List<DetalleVentaDto>> buscarPorVenta(@PathVariable Integer ventaId) {
+        return ResponseEntity.ok(detalleVentaService.buscarPorVenta(ventaId));
     }
     
-    @GetMapping("/buscar")
-    public ResponseEntity<List<ProductoDto>> buscarPorNombre(@RequestParam String nombre) {
-        return ResponseEntity.ok(productoService.buscarPorNombre(nombre));
+    @GetMapping("/producto/{productoId}")
+    public ResponseEntity<List<DetalleVentaDto>> buscarPorProducto(@PathVariable Integer productoId) {
+        return ResponseEntity.ok(detalleVentaService.buscarPorProducto(productoId));
     }
     
     @PostMapping
-    public ResponseEntity<ProductoDto> crear(@RequestBody ProductoDto productoDto) {
+    public ResponseEntity<DetalleVentaDto> crear(@RequestBody DetalleVentaDto detalleVentaDto) {
         try {
-            ProductoDto creado = productoService.crear(productoDto);
+            DetalleVentaDto creado = detalleVentaService.crear(detalleVentaDto);
             return ResponseEntity.status(HttpStatus.CREATED).body(creado);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
@@ -58,9 +57,9 @@ public class ProductoController {
     }
     
     @PutMapping("/{id}")
-    public ResponseEntity<ProductoDto> actualizar(@PathVariable Integer id, @RequestBody ProductoDto productoDto) {
+    public ResponseEntity<DetalleVentaDto> actualizar(@PathVariable Integer id, @RequestBody DetalleVentaDto detalleVentaDto) {
         try {
-            ProductoDto actualizado = productoService.actualizar(id, productoDto);
+            DetalleVentaDto actualizado = detalleVentaService.actualizar(id, detalleVentaDto);
             return ResponseEntity.ok(actualizado);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
@@ -72,7 +71,7 @@ public class ProductoController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
         try {
-            productoService.eliminar(id);
+            detalleVentaService.eliminar(id);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();

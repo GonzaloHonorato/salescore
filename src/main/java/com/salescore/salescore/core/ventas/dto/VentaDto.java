@@ -5,38 +5,43 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class VentaDto {
-    private Long id;
-    private LocalDateTime fechaVenta;
+    private Integer id;
+    private LocalDateTime fecha;
     private Double total;
-    private String cliente;
+    private String clienteNombre;
+    private String clienteRut;
+    private String vendedor;
     private List<DetalleVentaDto> detalles;
     
     public VentaDto() {
         this.detalles = new ArrayList<>();
     }
     
-    public VentaDto(Long id, LocalDateTime fechaVenta, Double total, String cliente) {
+    public VentaDto(Integer id, LocalDateTime fecha, Double total, String clienteNombre, 
+                    String clienteRut, String vendedor) {
         this.id = id;
-        this.fechaVenta = fechaVenta;
+        this.fecha = fecha;
         this.total = total;
-        this.cliente = cliente;
+        this.clienteNombre = clienteNombre;
+        this.clienteRut = clienteRut;
+        this.vendedor = vendedor;
         this.detalles = new ArrayList<>();
     }
     
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
     
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
     }
     
-    public LocalDateTime getFechaVenta() {
-        return fechaVenta;
+    public LocalDateTime getFecha() {
+        return fecha;
     }
     
-    public void setFechaVenta(LocalDateTime fechaVenta) {
-        this.fechaVenta = fechaVenta;
+    public void setFecha(LocalDateTime fecha) {
+        this.fecha = fecha;
     }
     
     public Double getTotal() {
@@ -47,12 +52,28 @@ public class VentaDto {
         this.total = total;
     }
     
-    public String getCliente() {
-        return cliente;
+    public String getClienteNombre() {
+        return clienteNombre;
     }
     
-    public void setCliente(String cliente) {
-        this.cliente = cliente;
+    public void setClienteNombre(String clienteNombre) {
+        this.clienteNombre = clienteNombre;
+    }
+    
+    public String getClienteRut() {
+        return clienteRut;
+    }
+    
+    public void setClienteRut(String clienteRut) {
+        this.clienteRut = clienteRut;
+    }
+    
+    public String getVendedor() {
+        return vendedor;
+    }
+    
+    public void setVendedor(String vendedor) {
+        this.vendedor = vendedor;
     }
     
     public List<DetalleVentaDto> getDetalles() {
@@ -61,9 +82,5 @@ public class VentaDto {
     
     public void setDetalles(List<DetalleVentaDto> detalles) {
         this.detalles = detalles;
-    }
-    
-    public void addDetalle(DetalleVentaDto detalle) {
-        this.detalles.add(detalle);
     }
 }

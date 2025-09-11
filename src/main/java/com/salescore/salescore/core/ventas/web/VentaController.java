@@ -1,17 +1,26 @@
 package com.salescore.salescore.core.ventas.web;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import com.salescore.salescore.core.ventas.dto.VentaDto;
-import com.salescore.salescore.core.ventas.service.VentaService;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.salescore.salescore.core.ventas.dto.VentaDto;
+import com.salescore.salescore.core.ventas.service.VentaService;
 
 @RestController
 @RequestMapping("/api/ventas")
@@ -26,7 +35,7 @@ public class VentaController {
     }
     
     @GetMapping("/{id}")
-    public ResponseEntity<VentaDto> buscarPorId(@PathVariable Long id) {
+    public ResponseEntity<VentaDto> buscarPorId(@PathVariable Integer id) {
         return ventaService.buscarPorId(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -86,5 +95,37 @@ public class VentaController {
         
         double ganancias = ventaService.calcularGananciasPorPeriodo(inicio, fin);
         return ResponseEntity.ok(ganancias);
+    }
+    
+    @PostMapping
+    public ResponseEntity<VentaDto> crearVenta(@RequestBody VentaDto ventaDto) {
+        try {
+            VentaDto creada = ventaService.crear(ventaDto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(creada);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    @PutMapping("/{id}")
+    public ResponseEntity<VentaDto> actualizarVenta(@PathVariable Integer id, @RequestBody VentaDto ventaDto) {
+        try {
+            VentaDto actualizada = ventaService.actualizar(id, ventaDto);
+            return ResponseEntity.ok(actualizada);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminarVenta(@PathVariable Integer id) {
+        try {
+            ventaService.eliminar(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }
