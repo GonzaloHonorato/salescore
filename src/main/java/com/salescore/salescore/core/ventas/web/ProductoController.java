@@ -1,8 +1,13 @@
 package com.salescore.salescore.core.ventas.web;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -26,20 +31,41 @@ public class ProductoController {
     private ProductoService productoService;
     
     @GetMapping
-    public ResponseEntity<List<ProductoDto>> listarTodos() {
-        return ResponseEntity.ok(productoService.listarTodos());
+    public ResponseEntity<CollectionModel<EntityModel<ProductoDto>>> listarTodos() {
+        List<EntityModel<ProductoDto>> productos = productoService.listarTodos().stream()
+                .map(producto -> EntityModel.of(producto,
+                        WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(ProductoController.class).buscarPorId(producto.getId())).withSelfRel(),
+                        WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(ProductoController.class).listarTodos()).withRel("productos")))
+                .collect(Collectors.toList());
+        
+        return ResponseEntity.ok(
+                CollectionModel.of(productos,
+                        WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(ProductoController.class).listarTodos()).withSelfRel()));
     }
     
     @GetMapping("/{id}")
-    public ResponseEntity<ProductoDto> buscarPorId(@PathVariable Integer id) {
+    public ResponseEntity<EntityModel<ProductoDto>> buscarPorId(@PathVariable Integer id) {
         return productoService.buscarPorId(id)
+                .map(producto -> EntityModel.of(producto, 
+                        WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(ProductoController.class).buscarPorId(id)).withSelfRel(),
+                        WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(ProductoController.class).listarTodos()).withRel("productos"),
+                        WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(ProductoController.class).buscarPorCategoria(producto.getCategoria())).withRel("misma-categoria")))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
     
     @GetMapping("/categoria/{categoria}")
-    public ResponseEntity<List<ProductoDto>> buscarPorCategoria(@PathVariable String categoria) {
-        return ResponseEntity.ok(productoService.buscarPorCategoria(categoria));
+    public ResponseEntity<CollectionModel<EntityModel<ProductoDto>>> buscarPorCategoria(@PathVariable String categoria) {
+        List<EntityModel<ProductoDto>> productos = productoService.buscarPorCategoria(categoria).stream()
+                .map(producto -> EntityModel.of(producto,
+                        WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(ProductoController.class).buscarPorId(producto.getId())).withSelfRel(),
+                        WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(ProductoController.class).listarTodos()).withRel("productos")))
+                .collect(Collectors.toList());
+        
+        return ResponseEntity.ok(
+                CollectionModel.of(productos,
+                        WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(ProductoController.class).buscarPorCategoria(categoria)).withSelfRel(),
+                        WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(ProductoController.class).listarTodos()).withRel("todos-productos")));
     }
     
     @GetMapping("/buscar")
