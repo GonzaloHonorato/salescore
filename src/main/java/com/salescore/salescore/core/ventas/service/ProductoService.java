@@ -18,10 +18,10 @@ import java.util.stream.Collectors;
 public class ProductoService {
     
     @Autowired
-    private ProductoMapper productoMapper;
+    public ProductoMapper productoMapper;
     
     @Autowired
-    private ProductoRepository productoRepository;
+    public ProductoRepository productoRepository;
     
     public List<ProductoDto> listarTodos() {
         return productoRepository.findAll().stream()
