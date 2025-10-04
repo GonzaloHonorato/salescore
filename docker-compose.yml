@@ -1,0 +1,13 @@
+version: '3.8'
+services:
+  salescore:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - spring.datasource.url=jdbc:oracle:thin:@i0f8qedl845bgx7j_high?TNS_ADMIN=/app/oracle_wallet/
+      - SPRING_DATASOURCE_USERNAME=ADMIN
+      - SPRING_DATASOURCE_PASSWORD=IFO:`46gW0.%
+    restart: always
