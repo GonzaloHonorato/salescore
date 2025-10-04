@@ -4,9 +4,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -22,6 +26,18 @@ import org.springframework.web.bind.annotation.RestController;
 import com.salescore.salescore.core.ventas.dto.VentaDto;
 import com.salescore.salescore.core.ventas.service.VentaService;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
+
+/**
+ * Controlador REST para gestión de ventas con documentación HATEOAS
+ * 
+ * Proporciona endpoints para CRUD de ventas, consultas por fecha,
+ * cálculo de ganancias y funcionalidades de debug.
+ * 
+ * Implementa hipermedia usando Spring HATEOAS para facilitar
+ * la navegación de la API.
+ */
+
 @RestController
 @RequestMapping("/api/ventas")
 public class VentaController {
@@ -29,16 +45,68 @@ public class VentaController {
     @Autowired
     private VentaService ventaService;
     
+    /**
+     * Lista todas las ventas con enlaces HATEOAS
+     * 
+     * @return CollectionModel con todas las ventas y enlaces de navegación
+     */
     @GetMapping
-    public ResponseEntity<List<VentaDto>> listarTodas() {
-        return ResponseEntity.ok(ventaService.listarTodas());
+    public ResponseEntity<CollectionModel<EntityModel<VentaDto>>> listarTodas() {
+        List<VentaDto> ventas = ventaService.listarTodas();
+        
+        List<EntityModel<VentaDto>> ventasModel = ventas.stream()
+            .map(this::agregarEnlaces)
+            .collect(Collectors.toList());
+        
+        CollectionModel<EntityModel<VentaDto>> collectionModel = CollectionModel.of(ventasModel);
+        
+        // Agregar enlaces de navegación
+        collectionModel.add(linkTo(methodOn(VentaController.class).listarTodas()).withSelfRel());
+        collectionModel.add(linkTo(methodOn(VentaController.class).crearVenta(null)).withRel("crear"));
+        collectionModel.add(linkTo(methodOn(VentaController.class).obtenerGananciasDiarias(LocalDate.now())).withRel("ganancias-dia"));
+        
+        return ResponseEntity.ok(collectionModel);
     }
     
+    /**
+     * Busca una venta por ID con enlaces HATEOAS
+     * 
+     * @param id ID de la venta a buscar
+     * @return EntityModel con la venta y enlaces relacionados
+     */
     @GetMapping("/{id}")
-    public ResponseEntity<VentaDto> buscarPorId(@PathVariable Integer id) {
+    public ResponseEntity<EntityModel<VentaDto>> buscarPorId(@PathVariable Integer id) {
         return ventaService.buscarPorId(id)
+                .map(this::agregarEnlaces)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+    
+    /**
+     * Agrega enlaces HATEOAS a una VentaDto
+     * 
+     * @param venta la venta a la que agregar enlaces
+     * @return EntityModel con enlaces HATEOAS
+     */
+    private EntityModel<VentaDto> agregarEnlaces(VentaDto venta) {
+        EntityModel<VentaDto> ventaModel = EntityModel.of(venta);
+        
+        // Enlace self
+        ventaModel.add(linkTo(methodOn(VentaController.class).buscarPorId(venta.getId())).withSelfRel());
+        
+        // Enlace para actualizar
+        ventaModel.add(linkTo(methodOn(VentaController.class).actualizarVenta(venta.getId(), null)).withRel("actualizar"));
+        
+        // Enlace para eliminar
+        ventaModel.add(linkTo(methodOn(VentaController.class).eliminarVenta(venta.getId())).withRel("eliminar"));
+        
+        // Enlace para volver a la lista
+        ventaModel.add(linkTo(methodOn(VentaController.class).listarTodas()).withRel(IanaLinkRelations.COLLECTION));
+        
+        // Enlace para ver detalles de la venta
+        ventaModel.add(linkTo(methodOn(DetalleVentaController.class).buscarPorVenta(venta.getId())).withRel("detalles"));
+        
+        return ventaModel;
     }
     
     @GetMapping("/fecha")
@@ -97,11 +165,19 @@ public class VentaController {
         return ResponseEntity.ok(ganancias);
     }
     
+    /**
+     * Crea una nueva venta con enlaces HATEOAS
+     * 
+     * @param ventaDto datos de la venta a crear
+     * @return EntityModel con la venta creada y enlaces relacionados
+     */
     @PostMapping
-    public ResponseEntity<VentaDto> crearVenta(@RequestBody VentaDto ventaDto) {
+    public ResponseEntity<EntityModel<VentaDto>> crearVenta(@RequestBody VentaDto ventaDto) {
         try {
             VentaDto creada = ventaService.crear(ventaDto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(creada);
+            EntityModel<VentaDto> ventaModel = agregarEnlaces(creada);
+            
+            return ResponseEntity.status(HttpStatus.CREATED).body(ventaModel);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
